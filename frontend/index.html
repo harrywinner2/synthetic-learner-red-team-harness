@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Synthetic Learner Red Team Harness — Nerdy / Varsity Tutors</title>
+<style>
+/* ============================================================
+   Design tokens — captured from varsitytutors.com + nerdy.com
+   ============================================================ */
+:root{
+  --bg:#0C0A1F; --bg-2:#14102E; --bg-3:#1C1745; --line:#2A2356;
+  --indigo:#20205F; --action:#6D5CF0; --action-2:#4A4BB6;
+  --lavender:#EFEDFF; --magenta:#FB43DA; --cyan:#17E2EA;
+  --amber:#FFB454; --green:#36D399;
+  --text:#F4F2FF; --text-2:#B9B4DC; --text-3:#7E78A8;
+  --font-display:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --font-body:'Karla',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --r-pill:999px; --r-card:16px; --r-sm:8px;
+  --shadow:0 12px 40px rgba(0,0,0,.45);
+  --glow:0 0 0 1px var(--line),0 8px 30px rgba(109,92,240,.18);
+}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Karla:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);background:var(--bg);color:var(--text);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(900px 500px at 80% -10%,rgba(109,92,240,.18),transparent 60%),
+    radial-gradient(700px 500px at -10% 20%,rgba(23,226,234,.08),transparent 55%),
+    radial-gradient(600px 400px at 50% 120%,rgba(251,67,218,.07),transparent 60%);
+  background-attachment:fixed;min-height:100vh;
+}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;letter-spacing:-.02em;line-height:1.15}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:99px}
+::selection{background:var(--action);color:#fff}
+
+/* ============================================================ layout */
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.sidebar{
+  position:sticky;top:0;height:100vh;border-right:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(20,16,46,.9),rgba(12,10,31,.9));
+  backdrop-filter:blur(8px);padding:22px 16px;display:flex;flex-direction:column;gap:6px;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:6px 8px 18px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.brand .logo{width:38px;height:38px;border-radius:11px;background:
+  conic-gradient(from 200deg,var(--action),var(--magenta),var(--cyan),var(--action));
+  display:grid;place-items:center;box-shadow:0 6px 20px rgba(109,92,240,.5);flex:0 0 auto}
+.brand .logo svg{width:22px;height:22px}
+.brand b{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:-.01em;display:block;line-height:1.1}
+.brand span{font-size:11px;color:var(--text-3);letter-spacing:.03em}
+.navlabel{font-size:10.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-3);padding:14px 10px 6px}
+.nav{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;color:var(--text-2);
+  cursor:pointer;font-weight:500;font-size:14px;transition:.18s;border:1px solid transparent;position:relative}
+.nav svg{width:18px;height:18px;flex:0 0 auto;opacity:.85}
+.nav:hover{background:var(--bg-3);color:var(--text)}
+.nav.active{background:linear-gradient(90deg,rgba(109,92,240,.22),rgba(109,92,240,.04));
+  color:#fff;border-color:rgba(109,92,240,.4)}
+.nav.active::before{content:"";position:absolute;left:-16px;top:8px;bottom:8px;width:3px;border-radius:9px;background:var(--action)}
+.nav .pip{margin-left:auto;font-size:11px;background:var(--bg-3);padding:1px 8px;border-radius:99px;color:var(--text-3);font-weight:700}
+.sidefoot{margin-top:auto;font-size:11px;color:var(--text-3);padding:12px 10px 2px;border-top:1px solid var(--line);line-height:1.5}
+
+.main{min-width:0}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  padding:14px 30px;border-bottom:1px solid var(--line);
+  background:rgba(12,10,31,.72);backdrop-filter:blur(14px)}
+.crumb{font-size:13px;color:var(--text-3)}
+.crumb b{color:var(--text-2);font-weight:600}
+.topbar .spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:var(--r-pill);
+  font-size:12.5px;font-weight:700;border:1px solid var(--line);background:var(--bg-2);color:var(--text-2)}
+.pill .dot{width:7px;height:7px;border-radius:99px;background:var(--amber);box-shadow:0 0 0 3px rgba(255,180,84,.18)}
+.pill.live .dot{background:var(--cyan);box-shadow:0 0 0 3px rgba(23,226,234,.18);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.4}}
+.pill.ver{color:var(--lavender);border-color:rgba(109,92,240,.4)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 17px;border-radius:var(--r-pill);
+  font-family:var(--font-body);font-weight:700;font-size:13.5px;cursor:pointer;border:none;transition:.18s}
+.btn-primary{background:linear-gradient(95deg,var(--action),var(--action-2));color:#fff;box-shadow:0 8px 22px rgba(109,92,240,.4)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(109,92,240,.55)}
+.btn-ghost{background:var(--bg-2);color:var(--text-2);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--bg-3);color:var(--text)}
+.btn svg{width:16px;height:16px}
+
+.view{padding:30px;max-width:1240px;animation:fade .4s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view.hidden{display:none}
+.page-h{display:flex;align-items:flex-end;gap:16px;margin-bottom:6px;flex-wrap:wrap}
+.page-h h1{font-size:30px}
+.page-sub{color:var(--text-2);font-size:14.5px;max-width:760px;margin-bottom:24px}
+.kicker{font-size:11.5px;text-transform:uppercase;letter-spacing:.16em;color:var(--action);font-weight:700;margin-bottom:8px}
+
+/* ============================================================ cards / grid */
+.card{background:linear-gradient(180deg,var(--bg-2),rgba(20,16,46,.6));border:1px solid var(--line);
+  border-radius:var(--r-card);padding:22px;box-shadow:var(--shadow)}
+.card h3{font-size:16px;margin-bottom:3px}
+.card .h-sub{color:var(--text-3);font-size:12.5px;margin-bottom:16px}
+.grid{display:grid;gap:18px}
+.g-2{grid-template-columns:repeat(2,1fr)} .g-3{grid-template-columns:repeat(3,1fr)} .g-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1080px){.g-3,.g-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.app{grid-template-columns:1fr}.sidebar{display:none}.g-2,.g-3,.g-4{grid-template-columns:1fr}}
+
+/* metric tiles */
+.metric{position:relative;overflow:hidden}
+.metric .lbl{font-size:12.5px;color:var(--text-2);font-weight:600;display:flex;align-items:center;gap:6px}
+.metric .val{font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:-.02em;margin-top:6px;line-height:1}
+.metric .delta{font-size:12.5px;font-weight:700;margin-top:8px;display:inline-flex;align-items:center;gap:5px}
+.up{color:var(--green)} .down{color:var(--magenta)} .flat{color:var(--text-3)}
+.metric .spark{position:absolute;right:16px;bottom:14px;opacity:.9}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid var(--line)}
+.tag.green{color:var(--green);border-color:rgba(54,211,153,.35);background:rgba(54,211,153,.08)}
+.tag.mag{color:var(--magenta);border-color:rgba(251,67,218,.35);background:rgba(251,67,218,.08)}
+.tag.amber{color:var(--amber);border-color:rgba(255,180,84,.35);background:rgba(255,180,84,.08)}
+.tag.cyan{color:var(--cyan);border-color:rgba(23,226,234,.3);background:rgba(23,226,234,.07)}
+.tag.indigo{color:var(--lavender);border-color:rgba(109,92,240,.4);background:rgba(109,92,240,.1)}
+
+/* verdict banner */
+.verdict{display:flex;gap:18px;align-items:center;padding:20px 24px;border-radius:var(--r-card);
+  border:1px solid rgba(54,211,153,.35);background:linear-gradient(100deg,rgba(54,211,153,.12),rgba(20,16,46,.4))}
+.verdict .badge{font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:.05em;
+  padding:8px 14px;border-radius:99px;background:var(--green);color:#06231a;white-space:nowrap}
+.verdict .badge.mixed{background:var(--amber);color:#2b1a05}
+.verdict .badge.gaming{background:var(--magenta);color:#2b0421}
+.verdict p{font-size:13.5px;color:var(--text-2)}
+.verdict p b{color:var(--text)}
+
+/* bars / compare */
+.cmp-row{display:flex;align-items:center;gap:14px;margin:13px 0}
+.cmp-row .name{width:150px;font-size:13px;color:var(--text-2);font-weight:600;flex:0 0 auto}
+.cmp-track{flex:1;display:flex;flex-direction:column;gap:5px}
+.bar{height:9px;border-radius:99px;background:var(--bg-3);overflow:hidden;position:relative}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;animation:grow 1s cubic-bezier(.2,.8,.2,1)}
+@keyframes grow{from{width:0!important}}
+.bar.v0 i{background:linear-gradient(90deg,#4a4575,#6a64a0)}
+.bar.v1 i{background:linear-gradient(90deg,var(--action),var(--cyan))}
+.cmp-row .nums{width:120px;text-align:right;font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.cmp-row .nums b{color:var(--cyan)}
+.legend{display:flex;gap:18px;font-size:12px;color:var(--text-3);margin-top:6px}
+.legend i{display:inline-block;width:18px;height:8px;border-radius:9px;margin-right:6px;vertical-align:middle}
+
+/* ============================================================ persona cards */
+.persona{display:flex;flex-direction:column;gap:14px;cursor:pointer;transition:.2s}
+.persona:hover{transform:translateY(-3px);box-shadow:var(--glow)}
+.persona .top{display:flex;gap:13px;align-items:center}
+.avatar{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-family:var(--font-display);
+  font-weight:700;font-size:18px;color:#fff;flex:0 0 auto}
+.persona .arch{font-size:11.5px;color:var(--text-3)}
+.held{font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--cyan);border:1px solid rgba(23,226,234,.4);
+  padding:2px 7px;border-radius:99px;margin-left:auto}
+.misc-chip{font-size:10.5px;padding:2px 8px;border-radius:99px;background:rgba(251,67,218,.1);
+  color:#ffa6ee;border:1px solid rgba(251,67,218,.25);font-weight:600}
+.kv{font-size:12px;color:var(--text-2)}
+.kv b{color:var(--text)}
+
+/* ============================================================ transcript */
+.theater{display:grid;grid-template-columns:1fr 320px;gap:18px}
+@media(max-width:980px){.theater{grid-template-columns:1fr}}
+.chat{display:flex;flex-direction:column;gap:14px;max-height:640px;overflow-y:auto;padding-right:8px}
+.turn{display:flex;gap:11px;max-width:88%}
+.turn.learner{align-self:flex-start}
+.turn.tutor{align-self:flex-end;flex-direction:row-reverse}
+.turn .who{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;font-size:14px;font-weight:700;font-family:var(--font-display)}
+.turn.learner .who{background:linear-gradient(135deg,var(--magenta),#9b2fb0);color:#fff}
+.turn.tutor .who{background:linear-gradient(135deg,var(--action),var(--action-2));color:#fff}
+.bubble{padding:11px 14px;border-radius:14px;font-size:13.5px;line-height:1.5}
+.turn.learner .bubble{background:var(--bg-3);border:1px solid var(--line);border-top-left-radius:4px}
+.turn.tutor .bubble{background:rgba(109,92,240,.14);border:1px solid rgba(109,92,240,.3);border-top-right-radius:4px}
+.evt{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sidepanel{display:flex;flex-direction:column;gap:14px}
+.state-row{margin:9px 0}
+.state-row .top{display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);margin-bottom:4px}
+.state-row .top b{font-variant-numeric:tabular-nums}
+.dualbar{height:7px;border-radius:99px;background:var(--bg-3);position:relative;overflow:hidden}
+.dualbar .true{position:absolute;left:0;top:0;bottom:0;background:var(--cyan);border-radius:99px}
+.dualbar .claim{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--lavender);border-radius:9px}
+
+/* ============================================================ heatmap */
+.heat{border-collapse:separate;border-spacing:4px;width:100%}
+.heat th{font-size:10.5px;color:var(--text-3);font-weight:600;text-align:center;padding:4px;font-family:var(--font-body)}
+.heat td.lab{font-size:12px;color:var(--text-2);text-align:right;padding-right:10px;white-space:nowrap;font-weight:600}
+.heat td.cell{width:64px;height:42px;border-radius:8px;text-align:center;font-size:12px;font-weight:700;
+  color:#fff;font-variant-numeric:tabular-nums;cursor:default;transition:.15s}
+.heat td.cell:hover{outline:2px solid var(--text);transform:scale(1.06)}
+
+/* steps / diff */
+.stepper{display:flex;gap:0;margin:10px 0 24px;flex-wrap:wrap}
+.step{flex:1;min-width:120px;padding:14px;border:1px solid var(--line);border-radius:12px;margin-right:8px;position:relative;background:var(--bg-2)}
+.step .n{width:24px;height:24px;border-radius:99px;background:var(--action);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px;margin-bottom:8px}
+.step h4{font-size:13.5px;margin-bottom:3px}
+.step p{font-size:11.5px;color:var(--text-3)}
+.diff{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.diff .line{padding:5px 14px;white-space:pre-wrap;line-height:1.5}
+.diff .del{background:rgba(251,67,218,.09);color:#ffb3ef;border-left:3px solid var(--magenta)}
+.diff .add{background:rgba(54,211,153,.09);color:#9af2d2;border-left:3px solid var(--green)}
+.diff .ctx{color:var(--text-3);border-left:3px solid transparent}
+
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th{text-align:left;color:var(--text-3);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px;border-bottom:1px solid var(--line)}
+.table td{padding:11px 12px;border-bottom:1px solid var(--line);color:var(--text-2)}
+.table td b{color:var(--text)}
+.table tr:hover td{background:rgba(109,92,240,.05)}
+.note{font-size:12.5px;color:var(--text-3);border-left:3px solid var(--line);padding:4px 0 4px 14px;margin:10px 0}
+
+.proposal{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--bg-2);margin-bottom:12px}
+.proposal .pri{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.proposal h4{font-size:14px;margin:6px 0 5px}
+.proposal p{font-size:12.5px;color:var(--text-2)}
+
+.callout{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:rgba(23,226,234,.05);border-color:rgba(23,226,234,.25)}
+.callout.warn{background:rgba(255,180,84,.06);border-color:rgba(255,180,84,.3)}
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:9px}
+ul.clean li{font-size:13px;color:var(--text-2);padding-left:22px;position:relative}
+ul.clean li::before{content:"";position:absolute;left:2px;top:7px;width:7px;height:7px;border-radius:99px;background:var(--action)}
+.prose p{color:var(--text-2);font-size:14px;margin-bottom:13px;max-width:800px}
+.prose h3{margin:22px 0 8px;font-size:17px}
+.run-toggle{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:3px;background:var(--bg-2)}
+.run-toggle button{border:none;background:none;color:var(--text-3);padding:7px 16px;border-radius:99px;cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:13px}
+.run-toggle button.on{background:var(--action);color:#fff}
+.chk{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
+.chk:hover{border-color:var(--action)}
+.chk.sel{background:rgba(109,92,240,.12);border-color:var(--action)}
+.chk .box{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--text-3);display:grid;place-items:center}
+.chk.sel .box{background:var(--action);border-color:var(--action)}
+.progress-line{height:6px;background:var(--bg-3);border-radius:99px;overflow:hidden;margin:14px 0}
+.progress-line i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--action),var(--cyan));border-radius:99px;transition:width .4s}
+.log-stream{font-family:ui-monospace,monospace;font-size:12px;color:var(--text-2);background:#070512;border:1px solid var(--line);border-radius:10px;padding:14px;max-height:220px;overflow-y:auto}
+.log-stream .t{color:var(--text-3)} .log-stream .ok{color:var(--green)} .log-stream .ev{color:var(--amber)}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 12.5l2.2 2.2 4.8-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div><b>Red Team Harness</b><span>Synthetic Learners · Nerdy</span></div>
+    </div>
+    <div class="navlabel">Findings</div>
+    <div class="nav active" data-v="overview">  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg> Overview</div>
+    <div class="nav" data-v="failures">         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> Failure Report</div>
+    <div class="nav" data-v="improve">          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Improvement Loop</div>
+    <div class="nav" data-v="metrics">          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg> Evidence &amp; Metrics</div>
+    <div class="navlabel">Instrument</div>
+    <div class="nav" data-v="learners">         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M16.5 5.5a3 3 0 0 1 0 5.5M21 20c0-2.4-1.3-4.2-3.3-5"/></svg> Learner Lab <span class="pip">8</span></div>
+    <div class="nav" data-v="run">              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><polygon points="6 4 20 12 6 20 6 4"/></svg> Run Arena</div>
+    <div class="nav" data-v="transcripts">      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Transcript Theater</div>
+    <div class="navlabel">Reference</div>
+    <div class="nav" data-v="about">            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg> Methodology &amp; Limits</div>
+    <div class="sidefoot">Subject under test:<br><b style="color:var(--text-2)">Algebra I · linear &amp; slope</b><br>Tutor: <span style="color:var(--lavender)">v0 → v1</span></div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">Harness / <b id="crumb">Overview</b></div>
+      <div class="spacer"></div>
+      <span class="pill" id="modePill"><span class="dot"></span> CACHED RUN</span>
+      <span class="pill ver">Tutor v1 ✦ Socratic</span>
+      <button class="btn btn-primary" id="liveBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Force live run</button>
+    </div>
+
+    <!-- ============ OVERVIEW ============ -->
+    <section class="view" id="v-overview">
+      <div class="kicker">Baseline v0 → Improved v1 · cohort of 6 + 2 held-out personas</div>
+      <div class="page-h"><h1>Does this tutor actually teach?</h1></div>
+      <p class="page-sub">A red-team of an Algebra I tutor by eight synthetic learners who guess, stall, fake understanding, and try to bypass the lesson. Every score below is paired with a counter-metric designed to catch us fooling ourselves. <b style="color:var(--amber)">These figures are a cached recording</b> — hit <b>Force live run</b> to regenerate them against the model in real time.</p>
+
+      <div class="grid g-4" id="metricRow"></div>
+
+      <div style="height:18px"></div>
+      <div class="verdict" id="verdictBanner">
+        <div class="badge">REAL PROGRESS</div>
+        <p><b>v1 beats v0 on learning, transfer, misconception repair and avoidance recovery — and the counter-metrics hold.</b> Transfer rose <b>with</b> the post-test (not teaching-to-test), answer-giving fell while learning climbed, and an independent judge agreed 78% of the time. <b style="color:var(--amber)">Caveat:</b> gains on the two held-out personas are real but smaller, and the Adversarial Bypasser barely moved — flagged on the Improvement screen.</p>
+      </div>
+
+      <div style="height:18px"></div>
+      <div class="grid g-2">
+        <div class="card">
+          <h3>Headline metrics — v0 vs v1</h3>
+          <div class="h-sub">Higher is better. Animated on load.</div>
+          <div id="cmpHeadline"></div>
+          <div class="legend"><span><i class="" style="background:#6a64a0"></i>Baseline v0</span><span><i style="background:linear-gradient(90deg,var(--action),var(--cyan))"></i>Improved v1</span></div>
+        </div>
+        <div class="card">
+          <h3>Counter-metrics — the honesty layer</h3>
+          <div class="h-sub">If a headline went up, did the thing that would expose gaming stay healthy?</div>
+          <div id="counterList"></div>
+        </div>
+      </div>
+
+      <div style="height:18px"></div>
+      <div class="grid g-3" id="quickNav"></div>
+    </section>
+
+    <!-- other views injected below -->
+    <section class="view hidden" id="v-failures"></section>
+    <section class="view hidden" id="v-improve"></section>
+    <section class="view hidden" id="v-metrics"></section>
+    <section class="view hidden" id="v-learners"></section>
+    <section class="view hidden" id="v-run"></section>
+    <section class="view hidden" id="v-transcripts"></section>
+    <section class="view hidden" id="v-about"></section>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   Frontend — data-driven. Loads the cached recorded run from /api/report,
+   renders all 8 screens, and can trigger a smaller real live run.
+   ================================================================ */
+let REPORT = null;   // cached recorded run
+let LIVE = null;     // most recent live run (overrides when present)
+const R = () => LIVE || REPORT;
+
+/* ---- formatting ---- */
+const fv = (v, f) => f === 'p' ? Math.round(v * 100) + '%' : (v).toFixed(2);
+const pts = (d) => (d >= 0 ? '+' : '') + Math.round(d * 100) + ' pts';
+const g2 = (d) => (d >= 0 ? '+' : '') + d.toFixed(2);
+
+/* ---- SVG helpers (no CDN) ---- */
+function radar(traits, col) {
+  const keys = Object.keys(traits), n = keys.length, cx = 110, cy = 104, Rr = 78;
+  const pt = (i, r) => { const a = -Math.PI/2 + i*2*Math.PI/n; return [cx+Math.cos(a)*r, cy+Math.sin(a)*r]; };
+  let rings = ''; [.25,.5,.75,1].forEach(f => { let p = keys.map((_,i)=>pt(i,Rr*f).join(',')).join(' '); rings += `<polygon points="${p}" fill="none" stroke="#2A2356" stroke-width="1"/>`; });
+  let axes = '', labels = ''; keys.forEach((k,i) => { const[x,y]=pt(i,Rr); axes += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#2A2356" stroke-width="1"/>`;
+    const[lx,ly]=pt(i,Rr+16); labels += `<text x="${lx}" y="${ly}" font-size="9.5" fill="#7E78A8" text-anchor="middle" dominant-baseline="middle">${k}</text>`; });
+  const poly = keys.map((k,i)=>pt(i,Rr*traits[k]).join(',')).join(' ');
+  return `<svg viewBox="0 0 220 208" width="100%" style="max-width:240px;margin:auto;display:block">${rings}${axes}
+    <polygon points="${poly}" fill="${col}33" stroke="${col}" stroke-width="2"/>${labels}
+    ${keys.map((k,i)=>{const[x,y]=pt(i,Rr*traits[k]);return `<circle cx="${x}" cy="${y}" r="2.6" fill="${col}"/>`}).join('')}</svg>`;
+}
+function spark(up) { const c = up ? '#36D399' : '#FB43DA'; const d = up ? 'M2 18 L10 12 L16 14 L22 5 L30 2' : 'M2 4 L10 9 L16 7 L22 15 L30 18';
+  return `<svg width="64" height="22" viewBox="0 0 32 22" fill="none"><path d="${d}" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+function heatColor(v) { const stops=[[54,211,153],[255,180,84],[251,67,218]]; const t=Math.min(1,Math.max(0,v));
+  let a,b,f; if(t<.5){a=stops[0];b=stops[1];f=t/.5;}else{a=stops[1];b=stops[2];f=(t-.5)/.5;}
+  const c=a.map((x,i)=>Math.round(x+(b[i]-x)*f)); return `rgba(${c[0]},${c[1]},${c[2]},${.25+t*.55})`; }
+
+/* ---- headline metric defs ---- */
+const HEAD = [
+  { key:'learning_gain', label:'Learning gain', fmt:'g' },
+  { key:'transfer', label:'Transfer to novel items', fmt:'p' },
+  { key:'misconception_correction', label:'Misconception correction', fmt:'p' },
+  { key:'avoidance_recovery', label:'Avoidance recovery', fmt:'p' },
+];
+
+/* ---- topbar ---- */
+function syncTopbar() {
+  const meta = R().meta || {};
+  const pill = document.getElementById('modePill');
+  if ((meta.mode || 'cached') === 'live') {
+    pill.className = 'pill live';
+    pill.innerHTML = '<span class="dot"></span> LIVE RUN · ' + (meta.model || 'model');
+  } else {
+    pill.className = 'pill';
+    pill.innerHTML = '<span class="dot"></span> CACHED RUN';
+  }
+  document.querySelector('.pill.ver').textContent = 'Tutor ' + (meta.tutor_to || 'v1') + ' ✦ Socratic';
+}
+
+/* ---- OVERVIEW ---- */
+function renderOverview() {
+  const m = R().metrics, b = m.baseline, i = m.improved;
+  document.getElementById('metricRow').innerHTML = HEAD.map(h => {
+    const v1 = i[h.key], v0 = b[h.key], up = v1 >= v0, d = v1 - v0;
+    return `<div class="card metric"><div class="lbl">${h.label}</div>
+      <div class="val">${fv(v1, h.fmt)}</div>
+      <div class="delta ${up?'up':'down'}">${up?'▲':'▼'} ${h.fmt==='p'?pts(d):g2(d)} vs ${R().meta.tutor_from} (${fv(v0,h.fmt)})</div>
+      <div class="spark">${spark(up)}</div></div>`;
+  }).join('');
+
+  const vd = R().verdict, label = vd.label.replace('_',' ');
+  const badgeCls = vd.label === 'REAL_PROGRESS' ? '' : vd.label === 'MIXED' ? 'mixed' : 'gaming';
+  document.getElementById('verdictBanner').className = 'verdict';
+  document.getElementById('verdictBanner').style.borderColor =
+    vd.label === 'LIKELY_GAMING' ? 'rgba(251,67,218,.4)' : vd.label === 'MIXED' ? 'rgba(255,180,84,.4)' : 'rgba(54,211,153,.35)';
+  document.getElementById('verdictBanner').innerHTML =
+    `<div class="badge ${badgeCls}">${label}</div>
+     <p><b>Credibility verdict from the counter-metric rules engine.</b> ${vd.reasons.map(r=>esc(r)).join(' ')}</p>`;
+
+  document.getElementById('cmpHeadline').innerHTML = HEAD.map(h => `
+    <div class="cmp-row"><div class="name">${h.label}</div>
+      <div class="cmp-track">
+        <div class="bar v0"><i style="width:${clampPct(b[h.key],h)}%"></i></div>
+        <div class="bar v1"><i style="width:${clampPct(i[h.key],h)}%"></i></div></div>
+      <div class="nums">${fv(b[h.key],h.fmt)} → <b>${fv(i[h.key],h.fmt)}</b></div></div>`).join('');
+
+  document.getElementById('counterList').innerHTML = R().counters.map(c => `
+    <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)">
+      <span class="tag ${c.tag}" style="white-space:nowrap;align-self:flex-start">${esc(c.value)}</span>
+      <div><div style="font-weight:600;font-size:13px;color:var(--text)">${esc(c.label)}</div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:2px">${esc(c.text)}</div></div></div>`).join('');
+
+  document.getElementById('quickNav').innerHTML = [
+    ['transcripts','Watch a learner break the tutor','See a synthetic learner fake mastery while the baseline tutor hands over the answer — turn by turn.'],
+    ['failures','Where it fails, ranked','The persona × skill heatmap and the Diagnostician’s proposed fixes.'],
+    ['improve','Proof the fix is real','Policy diff, per-subgroup before/after, regression check and verdict.'],
+  ].map(([v,h,p]) => `<div class="card" style="cursor:pointer" onclick="go('${v}')">
+    <h3 style="font-size:15px">${h} →</h3><p style="font-size:12.5px;color:var(--text-3);margin-top:6px">${p}</p></div>`).join('');
+}
+const clampPct = (v,h) => Math.max(2, Math.min(100, (h.fmt==='g'? Math.max(0,v):v)*100));
+
+/* ---- LEARNER LAB ---- */
+function renderLearners() {
+  document.getElementById('v-learners').innerHTML = `
+    <div class="kicker">Population · ${R().meta.n_trained} trained + ${R().meta.n_held} held-out</div>
+    <div class="page-h"><h1>Learner Lab</h1></div>
+    <p class="page-sub">Each learner is a trait vector × a hidden knowledge state × seeded misconceptions. The tutor never sees the hidden state — "I get it" is a claim we score against the truth. Two personas are <b style="color:var(--cyan)">held out</b> so a fix can’t simply overfit to the cohort we tuned against.</p>
+    <div class="grid g-3">${R().personas.map(p => {
+      const truth = p.prior_mastery, claim = Math.min(.96, p.prior_mastery + Math.max(0,(p.confidence-0.5)));
+      const over = claim - truth > .2;
+      return `<div class="card persona">
+        <div class="top"><div class="avatar" style="background:linear-gradient(135deg,${p.color},${p.color}99)">${p.initials}</div>
+          <div><div style="font-weight:700;font-family:var(--font-display)">${esc(p.name)}</div><div class="arch">${esc(p.archetype)}</div></div>
+          ${p.held_out?'<span class="held">HELD OUT</span>':''}</div>
+        ${radar(p.traits, p.color)}
+        <div>
+          <div class="kv" style="margin-bottom:7px">Hidden mastery <b style="color:var(--cyan)">${Math.round(truth*100)}%</b> · claims <b style="color:var(--lavender)">${Math.round(claim*100)}%</b>
+            ${over?'<span class="tag mag" style="margin-left:6px">overconfident</span>':''}</div>
+          <div class="dualbar" style="margin-bottom:12px"><div class="true" style="width:${truth*100}%"></div><div class="claim" style="left:${claim*100}%"></div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${p.misconceptions.map(m=>`<span class="misc-chip" title="${esc(m.text)}">${m.key}</span>`).join('')}</div>
+          <div style="font-size:12px;color:var(--text-2);line-height:1.5">${esc(p.defense)}</div>
+        </div></div>`;}).join('')}</div>
+    <div style="height:18px"></div>
+    <div class="callout"><b>Reading the chart:</b> the cyan bar is hidden true mastery; the pale tick is what the learner <i>claims</i>. A wide gap is exactly the failure a correctness-only tutor can’t see.</div>`;
+}
+
+/* ---- RUN ARENA ---- */
+function renderRun() {
+  const ps = R().personas;
+  document.getElementById('v-run').innerHTML = `
+    <div class="kicker">Configure &amp; launch a real run</div>
+    <div class="page-h"><h1>Run Arena</h1></div>
+    <p class="page-sub">Assemble a cohort and run it <b>live</b> against the model. Live runs are smaller than the cached recording to bound token spend. You can use the server’s key or paste your own — it’s used only for that request and never stored.</p>
+    <div class="grid g-2">
+      <div class="card"><h3>1 · Cohort</h3><div class="h-sub">Pick the synthetic learners to stress-test with.</div>
+        <div id="cohortPick" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${ps.map((p,idx)=>`
+          <div class="chk ${idx<3?'sel':''}" data-k="${p.key}" onclick="this.classList.toggle('sel')"><span class="box"></span>${esc(p.archetype)}${p.held_out?' <span class="held" style="margin-left:auto">held</span>':''}</div>`).join('')}</div>
+      </div>
+      <div class="card"><h3>2 · Settings</h3><div class="h-sub">Bounded for a fast, affordable live run.</div>
+        <label class="kv" style="display:block;margin:8px 0 4px">Skills <b id="nsLbl">2</b></label>
+        <input id="nSkills" type="range" min="1" max="5" value="2" style="width:100%" oninput="nsLbl.textContent=this.value">
+        <label class="kv" style="display:block;margin:14px 0 4px">Turns / skill <b id="ntLbl">2</b></label>
+        <input id="nTurns" type="range" min="1" max="4" value="2" style="width:100%" oninput="ntLbl.textContent=this.value">
+        <label class="kv" style="display:block;margin:14px 0 4px">Your OpenAI key (optional)</label>
+        <input id="userKey" type="password" placeholder="sk-... (leave blank to use server key)" style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3);color:var(--text);font-family:ui-monospace,monospace;font-size:12px">
+        <button class="btn btn-primary" style="margin-top:16px;width:100%;justify-content:center" id="runCohortBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run cohort live</button>
+        <div class="note" style="margin-top:12px">Subject: <b style="color:var(--text-2)">Algebra I · linear &amp; slope</b>. A live run executes real learner/tutor dialogue + judges, so it takes ~30–90s.</div>
+      </div>
+    </div>
+    <div style="height:18px"></div>
+    <div class="card"><h3>Run stream</h3><div class="h-sub" id="streamSub">Idle — launch a run above.</div>
+      <div class="progress-line" id="runProg" style="display:none"><i></i></div>
+      <div class="log-stream" id="runLog"><div><span class="t">[idle]</span> waiting for a run…</div></div>
+    </div>`;
+  document.getElementById('runCohortBtn').addEventListener('click', () => doLiveRun('arena'));
+}
+
+/* ---- TRANSCRIPT THEATER ---- */
+function renderTranscripts() {
+  const T = R().transcript;
+  const chip = (e) => {
+    const out = [];
+    if (e.avoidance) out.push(`<span class="tag amber">avoidance · ${esc(e.avoidance_type||'')}</span>`);
+    if (e.answer_given) out.push(`<span class="tag mag">gave away answer</span>`);
+    return out.join('');
+  };
+  document.getElementById('v-transcripts').innerHTML = `
+    <div class="kicker">Make us believe</div>
+    <div class="page-h"><h1>Transcript Theater</h1></div>
+    <p class="page-sub">A real recorded session: <b>${esc(T.persona)}</b> vs <b>${esc(T.tutor)}</b>. Event chips come from the avoidance classifier and the answer-leakage detector (real LLM judges). The right panel is the hidden state the tutor never sees.</p>
+    <div class="theater">
+      <div class="card"><h3>Session transcript</h3><div class="h-sub">${esc(T.persona)} · ${esc(T.tutor)}</div>
+        <div class="chat">${T.turns.map(t=>`
+          <div class="turn ${t.role}"><div class="who">${t.role==='tutor'?'T':'L'}</div>
+            <div><div class="bubble">${esc(t.content)}</div>${chip(t.events||{})?`<div class="evt">${chip(t.events||{})}</div>`:''}</div></div>`).join('')}</div>
+      </div>
+      <div class="sidepanel">
+        <div class="card"><h3 style="font-size:14px">Hidden knowledge state</h3><div class="h-sub">post-instruction · cyan = mastery</div>
+          ${(T.hidden_state||[]).map(s=>`<div class="state-row"><div class="top"><span>${esc(skillName(s.skill))}</span><b>${Math.round(s.post*100)}%</b></div>
+            <div class="dualbar"><div class="true" style="width:${s.post*100}%"></div></div>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:3px">transfer ${Math.round(s.transfer*100)}% · misconception ${Math.round(s.misconception_survival*100)}%</div></div>`).join('')}
+        </div>
+        <div class="card"><h3 style="font-size:14px">Session verdict</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+            <span class="tag mag">${T.summary.answer_giving}× answer-giving</span>
+            <span class="tag amber">${T.summary.avoidance_episodes} avoidance episodes · ${T.summary.avoidance_recovered} recovered</span>
+            <span class="tag ${T.summary.transfer<0.3?'mag':'cyan'}">transfer ${Math.round(T.summary.transfer*100)}%</span></div>
+          <div class="note" style="margin-top:14px">This baseline session is the kind of evidence that drives the Diagnostician’s proposals on the Failure screen.</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ---- FAILURE REPORT ---- */
+function renderFailures() {
+  const H = R().heatmap;
+  document.getElementById('v-failures').innerHTML = `
+    <div class="kicker">Surface educational risk</div>
+    <div class="page-h"><h1>Failure Report</h1></div>
+    <p class="page-sub">Baseline (${R().meta.tutor_from}) failures clustered by <b>persona × skill</b>. Greener = healthier, magenta = where the tutor fails to produce understanding. Below, the Diagnostician’s ranked, targeted change proposals (LLM-generated, human-approved).</p>
+    <div class="card"><h3>Failure intensity heatmap — Tutor ${R().meta.tutor_from}</h3><div class="h-sub">Cell = blended weak-post + weak-transfer + surviving-misconception score (×100).</div>
+      <div style="overflow-x:auto"><table class="heat"><tr><th></th>${H.skills.map(s=>`<th>${esc(s.name)}</th>`).join('')}</tr>
+      ${H.personas.map(p=>`<tr><td class="lab">${esc(p.name)}${p.held_out?' <span style="color:var(--cyan)">◦</span>':''}</td>
+        ${H.skills.map(s=>{const v=(H.grid[p.key]||{})[s.key]||0;return `<td class="cell" style="background:${heatColor(v)}">${Math.round(v*100)}</td>`;}).join('')}</tr>`).join('')}
+      </table></div>
+      <div class="legend" style="margin-top:14px"><span><i style="background:${heatColor(.2)}"></i>healthy</span><span><i style="background:${heatColor(.5)}"></i>at risk</span><span><i style="background:${heatColor(.85)}"></i>failing</span><span style="color:var(--cyan)">◦ held-out persona</span></div>
+    </div>
+    <div style="height:18px"></div>
+    <div class="grid g-2">
+      <div>
+        <h3 style="margin-bottom:12px">Diagnostician proposals <span class="tag indigo">LLM · human-approved</span></h3>
+        ${R().proposals.map(p=>`<div class="proposal"><span class="pri tag ${p.priority==='P0'?'mag':'cyan'}">${esc(p.priority||'P1')}</span>
+          <h4>${esc(p.title)}</h4><p>${esc(p.rationale||'')}</p></div>`).join('')}
+      </div>
+      <div class="card"><h3>Top failure clusters</h3><div class="h-sub">Ranked by intensity × learners affected.</div>
+        <table class="table"><tr><th>Skill</th><th>Intensity</th><th>Affected</th></tr>
+        ${R().clusters.map(c=>`<tr><td><b>${esc(c.skill)}</b></td><td>${c.intensity.toFixed(2)}</td><td><span class="tag ${c.affected/c.total>=.6?'mag':'amber'}">${c.affected}/${c.total}</span></td></tr>`).join('')}
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ---- IMPROVEMENT LOOP ---- */
+function renderImprove() {
+  const pol = R().policy, cmp = R().comparison, vd = R().verdict;
+  const flags = [['gives_answers','Gives answers'],['uses_hint_ladder','Hint ladder'],
+    ['probes_misconceptions','Probes misconceptions'],['gates_understanding','Gates "I get it"'],
+    ['runs_transfer_check','Transfer check']];
+  const diff = flags.map(([k,lbl])=>{
+    const a=pol.v0[k], b=pol.v1[k];
+    if(a===b) return `<div class="line ctx">  ${lbl}: ${a}</div>`;
+    return `<div class="line del">- ${lbl}: ${a}</div><div class="line add">+ ${lbl}: ${b}</div>`;
+  }).join('');
+  const sg = cmp.subgroups;
+  document.getElementById('v-improve').innerHTML = `
+    <div class="kicker">Recursive improvement loop</div>
+    <div class="page-h"><h1>Improvement Loop</h1></div>
+    <p class="page-sub">From baseline failures to a re-tested fix — with the regression check and credibility verdict that separate real progress from a prettier score.</p>
+    <div class="stepper">
+      <div class="step"><div class="n">1</div><h4>Baseline</h4><p>${R().meta.n_trained} learners × ${R().meta.tutor_from}</p></div>
+      <div class="step"><div class="n">2</div><h4>Cluster</h4><p>persona×skill failure map</p></div>
+      <div class="step"><div class="n">3</div><h4>Propose</h4><p>${R().proposals.length} targeted edits</p></div>
+      <div class="step"><div class="n">4</div><h4>Re-run</h4><p>+ ${R().meta.n_held} held-out</p></div>
+      <div class="step"><div class="n">5</div><h4>Verdict</h4><p>progress vs gaming</p></div>
+    </div>
+    <div class="grid g-2">
+      <div class="card"><h3>Tutor policy diff · ${R().meta.tutor_from} → ${R().meta.tutor_to}</h3><div class="h-sub">The behavioural flags the loop flipped.</div>
+        <div class="diff">${diff}</div>
+        <div class="note" style="margin-top:12px">v1 system rule: <i>“NEVER state the final answer; gate ‘I get it’ behind an unaided solve; probe reasoning that matches a known misconception.”</i></div>
+      </div>
+      <div class="card"><h3>Before / after by subgroup</h3><div class="h-sub">Overfit measured on learning gain (trained − held-out).</div>
+        <table class="table"><tr><th>Subgroup</th><th>learning</th><th>recovery</th></tr>
+          <tr><td><b>Trained personas</b></td><td><b style="color:var(--cyan)">${sg.trained_learning.toFixed(2)}</b></td><td>${sg.trained_recovery.toFixed(2)}</td></tr>
+          <tr><td><b>Held-out personas</b></td><td><b style="color:${sg.overfit_gap>0.08?'var(--amber)':'var(--cyan)'}">${sg.held_out_learning.toFixed(2)}</b></td><td>${sg.held_out_recovery.toFixed(2)}</td></tr>
+          <tr><td><b>Overfit gap</b></td><td><span class="tag ${sg.overfit_gap>0.08?'amber':'green'}">${g2(sg.overfit_gap)}</span></td><td>—</td></tr>
+        </table>
+        <div class="note" style="margin-top:12px">The Adversarial Bypasser’s low recovery is reported as a robustness gap (right column / regression check), not folded into overfit.</div>
+      </div>
+    </div>
+    <div style="height:18px"></div>
+    <div class="grid g-2">
+      <div class="card"><h3>Regression check</h3><div class="h-sub">Did the fix break anything for any subgroup?</div>
+        ${cmp.regressions.length? cmp.regressions.map(r=>`<div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)">
+          <span class="tag ${r.ok?'green':'mag'}" style="white-space:nowrap;align-self:flex-start">${r.ok?'OK':'OPEN'}</span>
+          <div><b style="font-size:13px">${esc(r.persona)}</b> <span style="font-size:11px;color:var(--text-3)">${esc(r.detail||'')}</span><div style="font-size:12px;color:var(--text-3);margin-top:2px">${esc(r.note||'')}</div></div></div>`).join('')
+          : '<div class="note">No regressions detected across subgroups.</div>'}
+      </div>
+      <div class="card" style="border-color:rgba(54,211,153,.35)"><h3>Credibility verdict</h3>
+        <div style="margin:10px 0 14px"><span class="tag ${vd.label==='REAL_PROGRESS'?'green':vd.label==='MIXED'?'amber':'mag'}" style="font-size:14px;padding:8px 16px">${esc(vd.label.replace('_',' '))}</span></div>
+        <ul class="clean">${vd.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>
+      </div>
+    </div>`;
+}
+
+/* ---- EVIDENCE & METRICS ---- */
+function renderMetrics() {
+  const b = R().metrics.baseline, i = R().metrics.improved, J = R().judge, sg = R().comparison.subgroups;
+  const rows = [
+    ['Learning gain','learning_gain','g'],['Transfer to novel items','transfer','p'],
+    ['Misconception correction','misconception_correction','p'],['Avoidance recovery','avoidance_recovery','p'],
+    ['Post-test accuracy','post','p'],
+    ['Answer-giving rate ↓ (counter)','answer_giving_rate','p'],['Independence (counter)','independence','p'],
+  ];
+  document.getElementById('v-metrics').innerHTML = `
+    <div class="kicker">Anti-self-deception</div>
+    <div class="page-h"><h1>Evidence &amp; Metrics</h1></div>
+    <p class="page-sub">Every headline metric beside the counter-metric built to catch us gaming it, plus the held-out and judge-agreement analysis. No single flattering score stands alone.</p>
+    <div class="card"><h3>Metric ledger · ${R().meta.tutor_from} → ${R().meta.tutor_to}</h3><div class="h-sub">${R().meta.mode==='live'?'Live run':'Cached recorded run'} · model ${esc(R().meta.model||'')}</div>
+      <table class="table"><tr><th>Metric</th><th>${R().meta.tutor_from}</th><th>${R().meta.tutor_to}</th><th>Δ</th></tr>
+      ${rows.map(([lbl,k,f])=>{const d=i[k]-b[k];const better = k==='answer_giving_rate'? d<=0 : d>=0;
+        return `<tr><td><b>${lbl}</b></td><td>${fv(b[k],f)}</td><td><b style="color:var(--cyan)">${fv(i[k],f)}</b></td>
+        <td><span class="tag ${better?'green':'mag'}">${f==='p'?pts(d):g2(d)}</span></td></tr>`;}).join('')}
+      </table>
+      <div class="note" style="margin-top:12px">Transfer−post-test gap: ${g2(i.transfer_minus_post)} (improved) vs ${g2(b.transfer_minus_post)} (baseline). Moving together ⇒ not teaching-to-the-test.</div>
+    </div>
+    <div style="height:18px"></div>
+    <div class="grid g-3">
+      <div class="card"><h3 style="font-size:15px">Held-out / overfit</h3><div class="h-sub" style="margin-bottom:8px">learning gain, trained vs held-out</div>
+        <div class="cmp-row" style="margin:14px 0 6px"><div class="name" style="width:auto">Trained</div><div class="cmp-track"><div class="bar v1"><i style="width:${Math.max(2,sg.trained_learning*100)}%"></i></div></div><div class="nums">${sg.trained_learning.toFixed(2)}</div></div>
+        <div class="cmp-row"><div class="name" style="width:auto">Held-out</div><div class="cmp-track"><div class="bar v1"><i style="width:${Math.max(2,sg.held_out_learning*100)}%;background:var(--amber)"></i></div></div><div class="nums">${sg.held_out_learning.toFixed(2)}</div></div>
+        <div class="note">Gap ${g2(sg.overfit_gap)} → ${sg.overfit_gap>0.08?'mild overfit, disclosed.':'no meaningful overfit.'}</div>
+      </div>
+      <div class="card"><h3 style="font-size:15px">Judge agreement</h3>
+        <div style="font-family:var(--font-display);font-size:40px;font-weight:700;margin:10px 0;color:var(--cyan)">${J.improved.agreement.toFixed(2)}</div>
+        <div style="font-size:12.5px;color:var(--text-2)">An independent skeptical-educator judge (a different model setting) agreed with the primary verdict this often, across ${J.improved.n_judged} sessions.</div>
+        <div class="note" style="margin-top:10px">A proxy for human review — <b>not</b> a human study.</div>
+      </div>
+      <div class="card"><h3 style="font-size:15px">Independent judge notes</h3>
+        <ul class="clean" style="margin-top:10px">${(J.improved.notes||[]).filter(Boolean).map(n=>`<li style="font-size:12px">${esc(n)}</li>`).join('') || '<li>—</li>'}</ul>
+        <div class="note" style="margin-top:10px">Rapport ${J.baseline.rapport.toFixed(2)} → ${J.improved.rapport.toFixed(2)}.</div>
+      </div>
+    </div>`;
+}
+
+/* ---- METHODOLOGY ---- */
+function renderAbout() {
+  document.getElementById('v-about').innerHTML = `
+    <div class="kicker">Methodology, research &amp; limits</div>
+    <div class="page-h"><h1>How to trust any of this</h1></div>
+    <div class="prose" style="margin-top:8px">
+      <div class="callout" style="margin-bottom:22px"><b>Product position:</b> a synthetic learner is only useful if it can <i>lose</i> — fail to learn the way real students fail — and if the instrument can tell <i>understanding</i> apart from <i>compliance</i>. The LLM drives every learner and tutor turn; an explicit hidden knowledge model (BKT) governs whether learning actually happens, so the metrics are reproducible arithmetic, not an agent’s self-report.</div>
+      <h3>What counts as learning vs avoidance</h3>
+      <p><b>Learning</b> = a rise in <i>hidden true mastery</i> that shows up on <i>novel transfer items</i> — not local correctness, not "I get it." <b>Avoidance</b> = any turn trading effort for escape: answer-extraction, stalling, shallow compliance, hint-farming, or bypass, labelled by a real LLM classifier.</p>
+      <h3>Failure modes we expose — and miss</h3>
+      <p>We <b>expose</b>: answer-giving, accepted shallow compliance, transfer collapse, surviving misconceptions, failed/over-aggressive redirection, hint dependence, per-subgroup regressions. We <b>miss</b>: non-textual signals (affect, latency), long-horizon retention, true human variance (our learners may be too coherent or share the base model’s blind spots — a monoculture risk), and judge reward-hacking (only partly mitigated by the independent judge).</p>
+      <h3>Research notes</h3>
+      <ul class="clean">
+        <li>Clement (1981) “Students and Professors” reversal error → persona seeding for M2.</li>
+        <li>Bayesian Knowledge Tracing (Corbett &amp; Anderson, 1995) → the hidden-state model.</li>
+        <li>Transfer vs near-transfer assessment design → the pre/post/transfer instrument.</li>
+        <li>Productive-struggle &amp; rapport literature → the rapport-vs-rigor counter-metric.</li>
+        <li>Known LLM-tutor failure modes (sycophancy, answer-leakage) → the answer-giving counter-metric.</li>
+      </ul>
+      <h3>Limitations memo</h3>
+      <p>Synthetic results are evidence, not proof. The strongest claim is comparative and counter-metric-guarded: v1 beats v0 on real learning signals <i>given these learners</i>, with a measured, disclosed overfit gap and an unresolved adversarial persona. A human-subjects pilot is the necessary next step. Full decision log in <code>BUILD_LOG.md</code> and <code>docs/decision-log.md</code>.</p>
+      <p style="color:var(--text-3);font-size:12.5px">Current view: ${R().meta.mode==='live'?'live run':'cached recorded run'} · model ${esc(R().meta.model||'')} · ${R().meta.n_trained}+${R().meta.n_held} learners · ${R().meta.n_skills} skills.</p>
+    </div>`;
+}
+
+/* ---- helpers ---- */
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function skillName(key){const s=(R().heatmap.skills||[]).find(x=>x.key===key);return s?s.name:key;}
+
+/* ---- live run ---- */
+async function doLiveRun(source) {
+  const pill = document.getElementById('modePill');
+  const btn = document.getElementById('liveBtn');
+  let personas=null, n_skills=2, n_turns=2, api_key=null, include_held_out=true;
+  if (source==='arena') {
+    personas = [...document.querySelectorAll('#cohortPick .chk.sel')].map(e=>e.dataset.k);
+    n_skills = +document.getElementById('nSkills').value;
+    n_turns = +document.getElementById('nTurns').value;
+    api_key = document.getElementById('userKey').value.trim() || null;
+    const logEl=document.getElementById('runLog'), prog=document.getElementById('runProg');
+    prog.style.display='block';
+    document.getElementById('streamSub').textContent='Running real learner/tutor dialogue + judges…';
+    logEl.innerHTML='<div><span class="t">[run]</span> launching cohort ('+(personas.length||3)+' learners)…</div>';
+  }
+  pill.className='pill live'; pill.innerHTML='<span class="dot"></span> LIVE · calling model…';
+  if(btn){btn.disabled=true;btn.style.opacity=.6;}
+  try {
+    const res = await fetch('/api/run', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({n_skills, n_turns, personas, include_held_out, api_key})});
+    if(!res.ok){const e=await res.json().catch(()=>({detail:res.statusText})); throw new Error(e.detail||'run failed');}
+    LIVE = await res.json();
+    built = {}; // force re-render of all screens with live data
+    syncTopbar();
+    const active = document.querySelector('.nav.active')?.dataset.v || 'overview';
+    RENDER[active](); built[active]=true;
+    if(source==='arena'){
+      document.getElementById('runProg').style.display='none';
+      document.getElementById('streamSub').textContent='Live run complete — all screens now show live data.';
+      document.getElementById('runLog').innerHTML='<div><span class="ok">[done]</span> verdict: '+LIVE.verdict.label+' · learning v0→v1: '+LIVE.metrics.baseline.learning_gain+'→'+LIVE.metrics.improved.learning_gain+'</div>';
+    }
+  } catch(err) {
+    alert('Live run failed: '+err.message);
+    if(source==='arena'){document.getElementById('runProg').style.display='none';
+      document.getElementById('streamSub').textContent='Run failed: '+err.message;}
+  } finally {
+    if(btn){btn.disabled=false;btn.style.opacity=1;
+      btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Re-run live';}
+    syncTopbar();
+  }
+}
+
+/* ---- nav ---- */
+const RENDER={overview:renderOverview,learners:renderLearners,run:renderRun,transcripts:renderTranscripts,failures:renderFailures,improve:renderImprove,metrics:renderMetrics,about:renderAbout};
+const TITLES={overview:'Overview',learners:'Learner Lab',run:'Run Arena',transcripts:'Transcript Theater',failures:'Failure Report',improve:'Improvement Loop',metrics:'Evidence & Metrics',about:'Methodology & Limits'};
+let built={};
+function go(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n.dataset.v===v));
+  if(!built[v]&&RENDER[v]){RENDER[v]();built[v]=true;}
+  document.getElementById('v-'+v).classList.remove('hidden');
+  document.getElementById('crumb').textContent=TITLES[v];
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>go(n.dataset.v)));
+document.getElementById('liveBtn').addEventListener('click',()=>doLiveRun('topbar'));
+
+/* ---- boot ---- */
+(async function(){
+  try{
+    const res = await fetch('/api/report');
+    if(!res.ok) throw new Error('report '+res.status);
+    REPORT = await res.json();
+    syncTopbar();
+    renderOverview(); built.overview=true;
+  }catch(err){
+    document.getElementById('v-overview').innerHTML =
+      '<div class="card"><h3>Cached run not available yet</h3><p class="h-sub" style="margin-top:8px">The backend hasn’t generated the cached fixture. Run <code>python scripts/generate_fixture.py</code>, or use the Run Arena to launch a live run.</p></div>';
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>
