@@ -1,0 +1,13 @@
+.git
+.venv
+node_modules
+design
+demo
+ui
+docs
+*.db
+__pycache__
+*.pyc
+.env
+.env.*
+tmp1.pdf
