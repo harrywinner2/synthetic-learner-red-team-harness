@@ -7,17 +7,23 @@ const manifest = JSON.parse(fs.readFileSync('demo/audio/manifest.json', 'utf8'))
 const outDir = 'demo/clips';
 fs.mkdirSync(outDir, { recursive: true });
 
-// beat id -> what to show on screen
+// beat id -> what to show on screen. `url` overrides the base+nav (e.g. GitHub).
+const REPO = 'https://github.com/harrywinner2/synthetic-learner-red-team-harness';
 const BEATS = {
-  1: { view: 'overview', scroll: 0 },
-  2: { view: 'overview', scroll: 120 },
-  3: { view: 'overview', sel: '#counterList' },
-  4: { view: 'learners', scroll: 0 },
-  5: { view: 'transcripts', scroll: 0 },
-  6: { view: 'failures', scroll: 0 },
-  7: { view: 'improve', scroll: 0 },
-  8: { view: 'run', scroll: 0 },
-  9: { view: 'about', scroll: 0 },
+  1:  { view: 'overview', scroll: 0 },
+  2:  { view: 'overview', scroll: 120 },
+  3:  { view: 'learners', scroll: 0 },
+  4:  { view: 'learners', scroll: 360 },
+  5:  { view: 'transcripts', scroll: 0 },
+  6:  { view: 'metrics', scroll: 0 },
+  7:  { view: 'metrics', scroll: 640 },
+  8:  { view: 'failures', scroll: 0 },
+  9:  { view: 'improve', scroll: 0 },
+  10: { view: 'run', scroll: 0 },
+  11: { view: 'run', scroll: 360 },
+  12: { url: REPO, scroll: 420 },
+  13: { view: 'about', scroll: 0 },
+  14: { view: 'overview', scroll: 0 },
 };
 const W = 1440, H = 900;
 
@@ -32,15 +38,18 @@ for (const beat of manifest) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H },
     recordVideo: { dir: tmp, size: { width: W, height: H } } });
   const page = await ctx.newPage();
-  await page.goto(base, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(1200);
-  if (cfg.view !== 'overview') {
-    await page.click(`.nav[data-v="${cfg.view}"]`).catch(() => {});
-    await page.waitForTimeout(900);
+  if (cfg.url) {
+    await page.goto(cfg.url, { waitUntil: 'domcontentloaded' }).catch(() => {});
+    await page.waitForTimeout(2500);
+  } else {
+    await page.goto(base, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1200);
+    if (cfg.view !== 'overview') {
+      await page.click(`.nav[data-v="${cfg.view}"]`).catch(() => {});
+      await page.waitForTimeout(900);
+    }
   }
-  if (cfg.sel) {
-    await page.locator(cfg.sel).scrollIntoViewIfNeeded().catch(() => {});
-  } else if (cfg.scroll) {
+  if (cfg.scroll) {
     await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'smooth' }), cfg.scroll);
   }
   // gentle motion for the remainder of the beat
