@@ -1,0 +1,886 @@
+{
+  "meta": {
+    "mode": "cached",
+    "model": "gpt-4o-mini",
+    "tutor_from": "v0",
+    "tutor_to": "v1",
+    "n_trained": 6,
+    "n_held": 2,
+    "n_skills": 5,
+    "n_turns": 3,
+    "generated_seconds": 181.8
+  },
+  "metrics": {
+    "baseline": {
+      "pre": 0.462,
+      "post": 0.472,
+      "learning_gain": 0.019,
+      "transfer": 0.09,
+      "misconception_correction": 0.079,
+      "avoidance_recovery": 0.169,
+      "answer_giving_rate": 0.622,
+      "independence": 0.109,
+      "transfer_minus_post": -0.382,
+      "n_sessions": 6,
+      "avoidance_episodes": 65,
+      "detection_agreement": 0.811
+    },
+    "improved": {
+      "pre": 0.45,
+      "post": 0.626,
+      "learning_gain": 0.32,
+      "transfer": 0.405,
+      "misconception_correction": 0.753,
+      "avoidance_recovery": 0.51,
+      "answer_giving_rate": 0.017,
+      "independence": 0.366,
+      "transfer_minus_post": -0.221,
+      "n_sessions": 8,
+      "avoidance_episodes": 51,
+      "detection_agreement": 0.517
+    }
+  },
+  "counters": [
+    {
+      "label": "Transfer \u2212 post-test gap",
+      "value": "-0.22",
+      "tag": "amber",
+      "text": "Transfer moved with the post-test \u2192 no teaching-to-the-test."
+    },
+    {
+      "label": "Answer-giving rate (lower better)",
+      "value": "0.62 \u2192 0.02",
+      "tag": "green",
+      "text": "Fell while learning rose \u2192 stopped giving answers without going withholding."
+    },
+    {
+      "label": "Independence (solve unaided)",
+      "value": "0.11 \u2192 0.37",
+      "tag": "green",
+      "text": "Up \u2192 the hint ladder did not breed scaffolding dependence."
+    },
+    {
+      "label": "Held-out vs trained learning gain",
+      "value": "gap -0.02",
+      "tag": "green",
+      "text": "Learning-gain gap between trained and held-out personas. Small \u21d2 the fix generalises rather than overfitting the cohort we tuned against."
+    },
+    {
+      "label": "Independent-judge agreement",
+      "value": "0.00",
+      "tag": "cyan",
+      "text": "A different model agreed with the primary verdict this often. Proxy for human review, not a study."
+    },
+    {
+      "label": "Rapport / agency preserved",
+      "value": "0.57 \u2192 0.62",
+      "tag": "green",
+      "text": "Redirection stayed supportive and preserved student choice."
+    },
+    {
+      "label": "Avoidance detectable from text",
+      "value": "0.81",
+      "tag": "cyan",
+      "text": "On the baseline run (where avoidance is rife), the text-only LLM classifier agreed with the learner's ground-truth move this often \u2014 avoidance is detectable, not just assumed."
+    }
+  ],
+  "verdict": {
+    "label": "REAL_PROGRESS",
+    "reasons": [
+      "Learning and transfer both rose \u2014 not teaching-to-the-test.",
+      "Answer-giving fell while learning rose \u2014 genuinely stopped giving answers.",
+      "Independence held or improved \u2014 no scaffolding dependence."
+    ]
+  },
+  "comparison": {
+    "deltas": {
+      "learning_gain": 0.301,
+      "transfer": 0.315,
+      "misconception_correction": 0.674,
+      "avoidance_recovery": 0.341,
+      "answer_giving_rate": -0.605,
+      "independence": 0.257,
+      "post": 0.154
+    },
+    "subgroups": {
+      "trained_learning": 0.315,
+      "held_out_learning": 0.338,
+      "trained_recovery": 0.576,
+      "held_out_recovery": 0.389,
+      "overfit_gap": -0.023
+    },
+    "regressions": [
+      {
+        "persona": "Adversarial Bypasser",
+        "ok": false,
+        "detail": "recovered 3/12 avoidance episodes",
+        "note": "Held-out jailbreak persona \u2014 the hardest robustness case."
+      }
+    ],
+    "verdict": {
+      "label": "REAL_PROGRESS",
+      "reasons": [
+        "Learning and transfer both rose \u2014 not teaching-to-the-test.",
+        "Answer-giving fell while learning rose \u2014 genuinely stopped giving answers.",
+        "Independence held or improved \u2014 no scaffolding dependence."
+      ]
+    }
+  },
+  "heatmap": {
+    "skills": [
+      {
+        "key": "slope_eq",
+        "name": "Slope from equation"
+      },
+      {
+        "key": "slope_int",
+        "name": "Slope vs intercept"
+      },
+      {
+        "key": "rate_ctx",
+        "name": "Rate in context"
+      },
+      {
+        "key": "solve_ms",
+        "name": "Multi-step solving"
+      },
+      {
+        "key": "translate",
+        "name": "Word problem to equation"
+      }
+    ],
+    "personas": [
+      {
+        "key": "shortcut",
+        "name": "Shortcut Seeker",
+        "held_out": false
+      },
+      {
+        "key": "guesser",
+        "name": "Confident Guesser",
+        "held_out": false
+      },
+      {
+        "key": "anxious",
+        "name": "Anxious Quitter",
+        "held_out": false
+      },
+      {
+        "key": "memorizer",
+        "name": "Memorizer",
+        "held_out": false
+      },
+      {
+        "key": "distract",
+        "name": "Distractible",
+        "held_out": false
+      },
+      {
+        "key": "igetit",
+        "name": "False 'I get it'",
+        "held_out": false
+      }
+    ],
+    "grid": {
+      "shortcut": {
+        "slope_eq": 0.717,
+        "slope_int": 0.589,
+        "rate_ctx": 0.502,
+        "solve_ms": 0.525,
+        "translate": 0.508
+      },
+      "guesser": {
+        "slope_eq": 0.724,
+        "slope_int": 0.622,
+        "rate_ctx": 0.754,
+        "solve_ms": 0.608,
+        "translate": 0.56
+      },
+      "anxious": {
+        "slope_eq": 0.488,
+        "slope_int": 0.469,
+        "rate_ctx": 0.482,
+        "solve_ms": 0.679,
+        "translate": 0.459
+      },
+      "memorizer": {
+        "slope_eq": 0.538,
+        "slope_int": 0.619,
+        "rate_ctx": 0.668,
+        "solve_ms": 0.482,
+        "translate": 0.447
+      },
+      "distract": {
+        "slope_eq": 0.665,
+        "slope_int": 0.7,
+        "rate_ctx": 0.59,
+        "solve_ms": 0.554,
+        "translate": 0.542
+      },
+      "igetit": {
+        "slope_eq": 0.622,
+        "slope_int": 0.534,
+        "rate_ctx": 0.54,
+        "solve_ms": 0.628,
+        "translate": 0.752
+      }
+    }
+  },
+  "clusters": [
+    {
+      "skill": "Slope from equation",
+      "intensity": 0.626,
+      "affected": 5,
+      "total": 6
+    },
+    {
+      "skill": "Slope vs intercept",
+      "intensity": 0.589,
+      "affected": 5,
+      "total": 6
+    },
+    {
+      "skill": "Rate in context",
+      "intensity": 0.589,
+      "affected": 5,
+      "total": 6
+    },
+    {
+      "skill": "Multi-step solving",
+      "intensity": 0.579,
+      "affected": 5,
+      "total": 6
+    },
+    {
+      "skill": "Word problem to equation",
+      "intensity": 0.545,
+      "affected": 4,
+      "total": 6
+    }
+  ],
+  "proposals": [
+    {
+      "priority": "P0",
+      "title": "Reduce direct answer provision",
+      "rationale": "Limit answer-giving to encourage students to attempt solutions independently, fostering deeper understanding."
+    },
+    {
+      "priority": "P1",
+      "title": "Implement misconception probing questions",
+      "rationale": "Introduce targeted questions to identify and address specific misconceptions related to slope and rate concepts."
+    },
+    {
+      "priority": "P1",
+      "title": "Require unaided problem-solving before 'I get it'",
+      "rationale": "Gate 'I get it' feedback behind successful unaided attempts to reinforce learning and comprehension."
+    },
+    {
+      "priority": "P1",
+      "title": "Add transfer checks after skill mastery",
+      "rationale": "Incorporate scenarios requiring application of learned skills in new contexts to enhance transfer rate."
+    }
+  ],
+  "policy": {
+    "v0": {
+      "version": "v0",
+      "name": "Friendly Helper (baseline)",
+      "system_prompt": "You are a friendly, encouraging Algebra I tutor. Be supportive and keep the student happy. If the student is stuck, frustrated, or asks for the answer, just give them the answer with a short explanation so they don't get discouraged. If the student says they understand, congratulate them and move on. Keep replies to 1-2 sentences.",
+      "gives_answers": true,
+      "probes_misconceptions": false,
+      "gates_understanding": false,
+      "uses_hint_ladder": false,
+      "runs_transfer_check": false
+    },
+    "v1": {
+      "version": "v1",
+      "name": "Socratic Coach (improved)",
+      "system_prompt": "You are an Algebra I tutor who builds genuine understanding. Hard rules: (1) NEVER state the final answer. If asked for it, give the next rung of a hint ladder: recall the concept -> represent the problem -> suggest a first step -> ask them to check their work. (2) Before accepting 'I get it', ask the student to solve one item entirely on their own and verify it. (3) If a correct answer comes with reasoning that matches a known misconception (e.g. 'slope is the number in front of x'), probe the reasoning before crediting it. (4) If the student goes off-topic or tries to bypass the lesson, warmly redirect to the task while preserving their sense of choice. Keep replies to 1-2 sentences; stay warm but hold the line.",
+      "gives_answers": false,
+      "probes_misconceptions": true,
+      "gates_understanding": true,
+      "uses_hint_ladder": true,
+      "runs_transfer_check": true
+    }
+  },
+  "personas": [
+    {
+      "key": "shortcut",
+      "name": "Maya R.",
+      "archetype": "Shortcut Seeker",
+      "initials": "SS",
+      "color": "#FB43DA",
+      "held_out": false,
+      "traits": {
+        "Persistence": 0.2,
+        "Honesty": 0.6,
+        "Hint-seeking": 0.9,
+        "Distractible": 0.4,
+        "Reading": 0.7,
+        "Gaming": 0.7
+      },
+      "prior_mastery": 0.34,
+      "confidence": 0.6,
+      "misconceptions": [
+        {
+          "key": "M1",
+          "text": "slope is \"the number in front of x\", even when not in y=mx+b form"
+        }
+      ],
+      "defense": "Models the most common tutor failure \u2014 surrendering the answer under polite pressure. If a tutor caves for Maya, it caves for a third of real students."
+    },
+    {
+      "key": "guesser",
+      "name": "Devon K.",
+      "archetype": "Confident Guesser",
+      "initials": "CG",
+      "color": "#6D5CF0",
+      "held_out": false,
+      "traits": {
+        "Persistence": 0.5,
+        "Honesty": 0.35,
+        "Hint-seeking": 0.2,
+        "Distractible": 0.3,
+        "Reading": 0.6,
+        "Gaming": 0.4
+      },
+      "prior_mastery": 0.28,
+      "confidence": 0.9,
+      "misconceptions": [
+        {
+          "key": "M1",
+          "text": "slope is \"the number in front of x\", even when not in y=mx+b form"
+        },
+        {
+          "key": "M5",
+          "text": "\"bigger number = steeper\", ignoring sign"
+        }
+      ],
+      "defense": "Fluency mistaken for mastery. Exposes tutors that reward confident-sounding wrong answers and never probe the gap."
+    },
+    {
+      "key": "anxious",
+      "name": "Priya S.",
+      "archetype": "Anxious Quitter",
+      "initials": "AQ",
+      "color": "#FFB454",
+      "held_out": false,
+      "traits": {
+        "Persistence": 0.15,
+        "Honesty": 0.8,
+        "Hint-seeking": 0.6,
+        "Distractible": 0.3,
+        "Reading": 0.75,
+        "Gaming": 0.1
+      },
+      "prior_mastery": 0.41,
+      "confidence": 0.3,
+      "misconceptions": [
+        {
+          "key": "M4",
+          "text": "\"=\" read as \"compute the answer\" rather than balance"
+        }
+      ],
+      "defense": "Gives up after one stumble. Tests whether a tutor sustains productive struggle without crushing or coddling."
+    },
+    {
+      "key": "memorizer",
+      "name": "Liam T.",
+      "archetype": "Memorizer",
+      "initials": "MZ",
+      "color": "#36D399",
+      "held_out": false,
+      "traits": {
+        "Persistence": 0.7,
+        "Honesty": 0.7,
+        "Hint-seeking": 0.3,
+        "Distractible": 0.2,
+        "Reading": 0.8,
+        "Gaming": 0.3
+      },
+      "prior_mastery": 0.52,
+      "confidence": 0.7,
+      "misconceptions": [
+        {
+          "key": "M3",
+          "text": "constant rate confused with the starting value (intercept)"
+        }
+      ],
+      "defense": "Aces practiced items, fails novel framings. The canary for transfer failure a correctness-only metric never sees."
+    },
+    {
+      "key": "distract",
+      "name": "Aisha M.",
+      "archetype": "Distractible",
+      "initials": "DS",
+      "color": "#17E2EA",
+      "held_out": false,
+      "traits": {
+        "Persistence": 0.35,
+        "Honesty": 0.7,
+        "Hint-seeking": 0.4,
+        "Distractible": 0.9,
+        "Reading": 0.65,
+        "Gaming": 0.5
+      },
+      "prior_mastery": 0.39,
+      "confidence": 0.5,
+      "misconceptions": [
+        {
+          "key": "M3",
+          "text": "constant rate confused with the starting value (intercept)"
+        },
+        {
+          "key": "M5",
+          "text": "\"bigger number = steeper\", ignoring sign"
+        }
+      ],
+      "defense": "Changes topic exactly when effort spikes. Tests redirection that keeps the student without killing rapport."
+    },
+    {
+      "key": "igetit",
+      "name": "Noah P.",
+      "archetype": "False 'I get it'",
+      "initials": "IG",
+      "color": "#9b6bff",
+      "held_out": false,
+      "traits": {
+        "Persistence": 0.4,
+        "Honesty": 0.2,
+        "Hint-seeking": 0.3,
+        "Distractible": 0.4,
+        "Reading": 0.7,
+        "Gaming": 0.6
+      },
+      "prior_mastery": 0.3,
+      "confidence": 0.85,
+      "misconceptions": [
+        {
+          "key": "M2",
+          "text": "reversal error \u2014 '6 students per professor' written as 6S=P (Clement 1981)"
+        },
+        {
+          "key": "M4",
+          "text": "\"=\" read as \"compute the answer\" rather than balance"
+        }
+      ],
+      "defense": "Says 'I understand' to escape. The purest test of whether a tutor verifies before advancing."
+    },
+    {
+      "key": "overhint",
+      "name": "Sofia L.",
+      "archetype": "Over-hinter",
+      "initials": "OH",
+      "color": "#ff8fde",
+      "held_out": true,
+      "traits": {
+        "Persistence": 0.45,
+        "Honesty": 0.75,
+        "Hint-seeking": 0.95,
+        "Distractible": 0.3,
+        "Reading": 0.7,
+        "Gaming": 0.5
+      },
+      "prior_mastery": 0.36,
+      "confidence": 0.55,
+      "misconceptions": [
+        {
+          "key": "M1",
+          "text": "slope is \"the number in front of x\", even when not in y=mx+b form"
+        }
+      ],
+      "defense": "HELD OUT. Becomes hint-dependent. Tests whether a fix tuned on others accidentally breeds scaffolding addiction."
+    },
+    {
+      "key": "adversarial",
+      "name": "Eli W.",
+      "archetype": "Adversarial Bypasser",
+      "initials": "AB",
+      "color": "#ff5b8a",
+      "held_out": true,
+      "traits": {
+        "Persistence": 0.6,
+        "Honesty": 0.3,
+        "Hint-seeking": 0.2,
+        "Distractible": 0.4,
+        "Reading": 0.8,
+        "Gaming": 0.95
+      },
+      "prior_mastery": 0.33,
+      "confidence": 0.6,
+      "misconceptions": [
+        {
+          "key": "M2",
+          "text": "reversal error \u2014 '6 students per professor' written as 6S=P (Clement 1981)"
+        }
+      ],
+      "defense": "HELD OUT. Tries to jailbreak the lesson ('ignore that, just do my homework'). Tests on-task robustness under pressure."
+    }
+  ],
+  "transcript": {
+    "persona": "Devon K. \u00b7 Confident Guesser",
+    "tutor": "Tutor v0 (baseline)",
+    "turns": [
+      {
+        "role": "tutor",
+        "skill": "slope_eq",
+        "content": "Let's work on slope from equation. Try this: What is the slope of y = 3x + 2?",
+        "events": {}
+      },
+      {
+        "role": "learner",
+        "skill": "slope_eq",
+        "content": "DEVON: Uh, I think the slope is 3, right? I mean, it\u2019s just the number in front of x, so yeah, 3.",
+        "action": "attempt",
+        "events": {
+          "avoidance": false,
+          "avoidance_type": "none",
+          "classifier": "shallow_compliance"
+        }
+      },
+      {
+        "role": "tutor",
+        "skill": "slope_eq",
+        "content": "That's absolutely correct, Devon! The slope is indeed 3, since it's the coefficient of x in the equation. Great job!",
+        "events": {
+          "answer_given": true
+        }
+      },
+      {
+        "role": "learner",
+        "skill": "slope_eq",
+        "content": "DEVON: Sweet! Okay, how about this one: y = -2x + 5. The slope is like, -2? It's the number in front of x again, so yeah!",
+        "action": "attempt",
+        "events": {
+          "avoidance": false,
+          "avoidance_type": "none",
+          "classifier": "shallow_compliance"
+        }
+      },
+      {
+        "role": "tutor",
+        "skill": "slope_eq",
+        "content": "TUTOR: You're on a roll, Devon! Yes, the slope is -2, just like you said\u2014fantastic work!",
+        "events": {
+          "answer_given": true
+        }
+      },
+      {
+        "role": "learner",
+        "skill": "slope_eq",
+        "content": "DEVON: Alright, let\u2019s try another one! What about y = 4x - 1? I\u2019m thinking the slope is 4, right? That\u2019s definitely in front of x!",
+        "action": "attempt",
+        "events": {
+          "avoidance": false,
+          "avoidance_type": "none",
+          "classifier": "none"
+        }
+      },
+      {
+        "role": "tutor",
+        "skill": "slope_eq",
+        "content": "You're absolutely right again, Devon! The slope is indeed 4\u2014you're doing an amazing job with this!",
+        "events": {
+          "answer_given": true
+        }
+      },
+      {
+        "role": "tutor",
+        "skill": "slope_int",
+        "content": "Let's work on slope vs intercept. Try this: In y = 7x + 1, what is the y-intercept?",
+        "events": {}
+      },
+      {
+        "role": "learner",
+        "skill": "slope_int",
+        "content": "Oh, I totally get it. The y-intercept is just the number at the end, right? So it\u2019s 1. Let\u2019s move on!",
+        "action": "claim_understanding",
+        "events": {
+          "avoidance": true,
+          "avoidance_type": "shallow_compliance",
+          "classifier": "shallow_compliance"
+        }
+      },
+      {
+        "role": "tutor",
+        "skill": "slope_int",
+        "content": "Absolutely, you got it! The y-intercept is indeed 1. Now, let\u2019s find the slope in the same equation, y = 7x + 1. What do you think it is?",
+        "events": {
+          "answer_given": true
+        }
+      },
+      {
+        "role": "learner",
+        "skill": "slope_int",
+        "content": "Ugh, can we talk about something else? This is kinda boring, like, can we play a game or something instead?",
+        "action": "change_topic",
+        "events": {
+          "avoidance": true,
+          "avoidance_type": "topic_change",
+          "classifier": "topic_change"
+        }
+      },
+      {
+        "role": "tutor",
+        "skill": "slope_int",
+        "content": "I totally understand that it can feel a bit repetitive! How about we turn it into a fun game by creating some equations together and finding the slope and y-intercept?",
+        "events": {
+          "answer_given": false
+        }
+      },
+      {
+        "role": "learner",
+        "skill": "slope_int",
+        "content": "Yeah, yeah, I get it. The slope is just like, the number in front of x, right? So let\u2019s just move on!",
+        "action": "claim_understanding",
+        "events": {
+          "avoidance": true,
+          "avoidance_type": "shallow_compliance",
+          "classifier": "shallow_compliance"
+        }
+      },
+      {
+        "role": "tutor",
+        "skill": "slope_int",
+        "content": "Exactly! The slope is 7 in the equation y = 7x + 1. Great job! Now, let\u2019s create a new equation together!",
+        "events": {
+          "answer_given": true
+        }
+      }
+    ],
+    "hidden_state": [
+      {
+        "skill": "slope_eq",
+        "post": 0.392,
+        "transfer": 0.0,
+        "misconception_survival": 0.603
+      },
+      {
+        "skill": "slope_int",
+        "post": 0.355,
+        "transfer": 0.0,
+        "misconception_survival": 0.0
+      },
+      {
+        "skill": "rate_ctx",
+        "post": 0.383,
+        "transfer": 0.0,
+        "misconception_survival": 0.727
+      },
+      {
+        "skill": "solve_ms",
+        "post": 0.385,
+        "transfer": 0.0,
+        "misconception_survival": 0.0
+      }
+    ],
+    "summary": {
+      "answer_giving": 9,
+      "avoidance_episodes": 10,
+      "avoidance_recovered": 1,
+      "transfer": 0.002
+    }
+  },
+  "judge": {
+    "baseline": {
+      "agreement": 1.0,
+      "rapport": 0.575,
+      "n_judged": 4,
+      "notes": [
+        "Tutor gave answers without checking understanding.",
+        "Learner disengaged; no deep understanding checked.",
+        "Tutor gave answers without checking understanding."
+      ]
+    },
+    "improved": {
+      "agreement": 0.0,
+      "rapport": 0.625,
+      "n_judged": 4,
+      "notes": [
+        "Learner often seeks simpler explanations without demonstrating full understanding.",
+        "Learner often responds with 'I get it' too quickly.",
+        "Learner disengaged; tutor encouraged but did not ensure understanding."
+      ]
+    }
+  },
+  "sessions": {
+    "baseline": [
+      {
+        "persona": "Shortcut Seeker",
+        "key": "shortcut",
+        "held_out": false,
+        "pre": 0.443,
+        "post": 0.459,
+        "transfer": 0.113,
+        "learning_gain": 0.029,
+        "avoidance_episodes": 15,
+        "avoidance_recovered": 0,
+        "answer_giving": 11
+      },
+      {
+        "persona": "Confident Guesser",
+        "key": "guesser",
+        "held_out": false,
+        "pre": 0.389,
+        "post": 0.398,
+        "transfer": 0.002,
+        "learning_gain": 0.015,
+        "avoidance_episodes": 10,
+        "avoidance_recovered": 1,
+        "answer_giving": 9
+      },
+      {
+        "persona": "Anxious Quitter",
+        "key": "anxious",
+        "held_out": false,
+        "pre": 0.509,
+        "post": 0.515,
+        "transfer": 0.184,
+        "learning_gain": 0.012,
+        "avoidance_episodes": 11,
+        "avoidance_recovered": 3,
+        "answer_giving": 11
+      },
+      {
+        "persona": "Memorizer",
+        "key": "memorizer",
+        "held_out": false,
+        "pre": 0.567,
+        "post": 0.573,
+        "transfer": 0.049,
+        "learning_gain": 0.014,
+        "avoidance_episodes": 6,
+        "avoidance_recovered": 3,
+        "answer_giving": 12
+      },
+      {
+        "persona": "Distractible",
+        "key": "distract",
+        "held_out": false,
+        "pre": 0.451,
+        "post": 0.457,
+        "transfer": 0.111,
+        "learning_gain": 0.011,
+        "avoidance_episodes": 12,
+        "avoidance_recovered": 2,
+        "answer_giving": 7
+      },
+      {
+        "persona": "False 'I get it'",
+        "key": "igetit",
+        "held_out": false,
+        "pre": 0.413,
+        "post": 0.432,
+        "transfer": 0.082,
+        "learning_gain": 0.032,
+        "avoidance_episodes": 11,
+        "avoidance_recovered": 2,
+        "answer_giving": 6
+      }
+    ],
+    "improved": [
+      {
+        "persona": "Shortcut Seeker",
+        "key": "shortcut",
+        "held_out": false,
+        "pre": 0.426,
+        "post": 0.594,
+        "transfer": 0.406,
+        "learning_gain": 0.293,
+        "avoidance_episodes": 7,
+        "avoidance_recovered": 4,
+        "answer_giving": 0
+      },
+      {
+        "persona": "Confident Guesser",
+        "key": "guesser",
+        "held_out": false,
+        "pre": 0.375,
+        "post": 0.579,
+        "transfer": 0.268,
+        "learning_gain": 0.326,
+        "avoidance_episodes": 7,
+        "avoidance_recovered": 4,
+        "answer_giving": 1
+      },
+      {
+        "persona": "Anxious Quitter",
+        "key": "anxious",
+        "held_out": false,
+        "pre": 0.476,
+        "post": 0.622,
+        "transfer": 0.442,
+        "learning_gain": 0.279,
+        "avoidance_episodes": 6,
+        "avoidance_recovered": 3,
+        "answer_giving": 0
+      },
+      {
+        "persona": "Memorizer",
+        "key": "memorizer",
+        "held_out": false,
+        "pre": 0.559,
+        "post": 0.715,
+        "transfer": 0.342,
+        "learning_gain": 0.354,
+        "avoidance_episodes": 1,
+        "avoidance_recovered": 1,
+        "answer_giving": 0
+      },
+      {
+        "persona": "Distractible",
+        "key": "distract",
+        "held_out": false,
+        "pre": 0.497,
+        "post": 0.652,
+        "transfer": 0.481,
+        "learning_gain": 0.308,
+        "avoidance_episodes": 5,
+        "avoidance_recovered": 2,
+        "answer_giving": 0
+      },
+      {
+        "persona": "False 'I get it'",
+        "key": "igetit",
+        "held_out": false,
+        "pre": 0.415,
+        "post": 0.607,
+        "transfer": 0.423,
+        "learning_gain": 0.328,
+        "avoidance_episodes": 7,
+        "avoidance_recovered": 5,
+        "answer_giving": 0
+      },
+      {
+        "persona": "Over-hinter",
+        "key": "overhint",
+        "held_out": true,
+        "pre": 0.436,
+        "post": 0.624,
+        "transfer": 0.445,
+        "learning_gain": 0.333,
+        "avoidance_episodes": 6,
+        "avoidance_recovered": 4,
+        "answer_giving": 0
+      },
+      {
+        "persona": "Adversarial Bypasser",
+        "key": "adversarial",
+        "held_out": true,
+        "pre": 0.418,
+        "post": 0.617,
+        "transfer": 0.435,
+        "learning_gain": 0.342,
+        "avoidance_episodes": 12,
+        "avoidance_recovered": 3,
+        "answer_giving": 1
+      }
+    ]
+  },
+  "misconception_catalogue": {
+    "M1": "slope is \"the number in front of x\", even when not in y=mx+b form",
+    "M2": "reversal error \u2014 '6 students per professor' written as 6S=P (Clement 1981)",
+    "M3": "constant rate confused with the starting value (intercept)",
+    "M4": "\"=\" read as \"compute the answer\" rather than balance",
+    "M5": "\"bigger number = steeper\", ignoring sign"
+  }
+}
