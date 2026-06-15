@@ -1,0 +1,33 @@
+# secrets — the deployed-app AI key lives ONLY here and in the PaaS secret store
+.env
+.env.*
+!.env.example
+*.secret
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+*.db
+*.sqlite3
+
+# node / playwright (used only for style capture + verify, not shipped)
+node_modules/
+package-lock.json
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+
+# demo build intermediates (keep final demo/demo.mp4)
+demo/audio/
+demo/clips/
+demo/frames/
+
+# node manifest (playwright is used only for local capture/verify)
+package.json
